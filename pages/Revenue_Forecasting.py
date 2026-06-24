@@ -25,14 +25,16 @@ WINDOW_SIZE = 30
 
 @st.cache_resource
 def load_saved_model():
-    from keras.models import load_model
+    import tensorflow as tf
 
     if not MODEL_PATH.exists():
         raise FileNotFoundError(
             f"Model file tidak ditemukan: {MODEL_PATH}"
         )
 
-    return load_model(str(MODEL_PATH))
+    return tf.keras.models.load_model(
+        str(MODEL_PATH)
+    )
 
 
 def forecast_next_30_days(
