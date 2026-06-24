@@ -2,6 +2,8 @@ import numpy as np
 import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
+import tensorflow as tf
+from pathlib import Path
 
 from Utils import (
     load_lstmforecasting_data
@@ -16,7 +18,6 @@ from analytics.lstm_preprocessing import (
 
 from analytics.lstm_model import (
     train_model,
-    load_saved_model,
     forecast_next_30_days,
     split_data,
     create_sequences
@@ -29,6 +30,19 @@ from analytics.lstm_evaluation import (
 st.title(
     "📈 Revenue Forecasting"
 )
+
+MODEL_PATH = Path(__file__).resolve().parents[1] / "models" / "revenue_lstm.keras"
+
+@st.cache_resource
+def load_saved_model():
+    if not MODEL_PATH.exists():
+        raise FileNotFoundError(
+            f"Model file tidak ditemukan: {MODEL_PATH}"
+        )
+
+    return tf.keras.models.load_model(
+        str(MODEL_PATH)
+    )
 
 # =====================
 # LOAD DATA
