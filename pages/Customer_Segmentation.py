@@ -10,6 +10,35 @@ from analytics.rfm import (
 from Utils import (
     load_rfm_data
 )
+import base64
+# ======================
+# Sidebar Background
+# ======================
+def get_base64(file_path):
+    with open(file_path, "rb") as f:
+        return base64.b64encode(f.read()).decode()
+
+sidebar_bg = get_base64("static/resized_200x900.png")
+
+st.markdown(
+    f"""
+    <style>
+    [data-testid="stSidebar"] {{
+        background-image: url("data:image/jpg;base64,{sidebar_bg}");
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+    }}
+
+    [data-testid="stSidebar"] * {{
+        color: white !important;
+    }}
+    </style>
+    """,
+    unsafe_allow_html=True
+)
+st.set_page_config(page_title="Customer Segmentation", layout="wide", page_icon="static/SUPERSTORE.png")
+st.snow()
 st.title("👥 Customer Segmentation (RFM Analysis)")
 
 

@@ -1,6 +1,7 @@
 from typing import List
 import streamlit as st
 import pandas as pd
+import base64
 from Utils import (
     kpi_customer_analytics,
     segment_customer_analytics,
@@ -15,8 +16,35 @@ from Utils import (
 import plotly.express as px
 
 from pages.Executive_Dashboard import display_donut_chart
+# ======================
+# Sidebar Background
+# ======================
+def get_base64(file_path):
+    with open(file_path, "rb") as f:
+        return base64.b64encode(f.read()).decode()
 
-st.set_page_config(page_title="Customer Analytics", layout="wide")
+sidebar_bg = get_base64("static/resized_200x900.png")
+
+st.markdown(
+    f"""
+    <style>
+    [data-testid="stSidebar"] {{
+        background-image: url("data:image/jpg;base64,{sidebar_bg}");
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+    }}
+
+    [data-testid="stSidebar"] * {{
+        color: white !important;
+    }}
+    </style>
+    """,
+    unsafe_allow_html=True
+)
+
+st.snow()
+st.set_page_config(page_title="Customer Analytics", layout="wide", page_icon="static/SUPERSTORE.png")
 
 # ── Header + Date Filter ────────────────────────────────────────────────────
 col1, col2, col3 = st.columns([2, 1, 1])

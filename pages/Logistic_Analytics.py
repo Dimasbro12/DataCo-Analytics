@@ -16,8 +16,35 @@ from Utils import (
     load_filter_data,
 )
 import plotly.express as px
+import base64
+# ======================
+# Sidebar Background
+# ======================
+def get_base64(file_path):
+    with open(file_path, "rb") as f:
+        return base64.b64encode(f.read()).decode()
 
-st.set_page_config(page_title="Logistic Analytics", layout="wide")
+sidebar_bg = get_base64("static/resized_200x900.png")
+
+st.markdown(
+    f"""
+    <style>
+    [data-testid="stSidebar"] {{
+        background-image: url("data:image/jpg;base64,{sidebar_bg}");
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+    }}
+
+    [data-testid="stSidebar"] * {{
+        color: white !important;
+    }}
+    </style>
+    """,
+    unsafe_allow_html=True
+)
+st.set_page_config(page_title="Logistic Analytics", layout="wide", page_icon="static/SUPERSTORE.png")
+st.snow()
 
 # ── Header + Date Filter ────────────────────────────────────────────────────
 col1, col2, col3 = st.columns([2, 1, 1])
