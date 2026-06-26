@@ -7,7 +7,7 @@ from sklearn.metrics import (
 
 
 def evaluate_model(
-    model,
+    session,
     X_test,
     y_test,
     scaler,
@@ -15,10 +15,14 @@ def evaluate_model(
     actual_revenue=None
 ):
 
-    pred = model.predict(
-        X_test,
-        verbose=0
-    )
+    input_name = session.get_inputs()[0].name
+    output_name = session.get_outputs()[0].name
+    pred = session.run(
+        [output_name],
+        {
+            input_name: X_test.astype(np.float32)
+        }
+    )[0]
 
     pred = scaler.inverse_transform(
         pred

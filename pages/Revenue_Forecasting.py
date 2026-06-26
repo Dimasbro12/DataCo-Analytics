@@ -1,11 +1,9 @@
-import numpy as np
 import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
+import base64
 
-from Utils import (
-    load_lstmforecasting_data
-)
+from Utils import load_lstmforecasting_data
 
 from analytics.lstm_preprocessing import (
     detect_outliers_iqr,
@@ -13,6 +11,7 @@ from analytics.lstm_preprocessing import (
     difference_data,
     scale_data
 )
+
 from analytics.lstm_deploy import (
     load_saved_model,
     forecast_next_30_days
@@ -27,13 +26,14 @@ from analytics.lstm_evaluation import (
     evaluate_model
 )
 
-import base64
 # ======================
 # Sidebar Background
 # ======================
+
 def get_base64(file_path):
     with open(file_path, "rb") as f:
         return base64.b64encode(f.read()).decode()
+
 
 sidebar_bg = get_base64("static/resized_200x900.png")
 
@@ -52,145 +52,57 @@ st.markdown(
     }}
     </style>
     """,
-    unsafe_allow_html=True
-)
-st.set_page_config(page_title="Revenue Forecasting", layout="wide", page_icon="static/SUPERSTORE.png")
-st.snow()
-st.title(
-    "📈 Revenue Forecasting"
+    unsafe_allow_html=True,
 )
 
-# =====================
+st.set_page_config(
+    page_title="Revenue Forecasting",
+    layout="wide",
+    page_icon="static/SUPERSTORE.png"
+)
+
+st.snow()
+st.title("📈 Revenue Forecasting")
+
+# ======================
 # LOAD DATA
-# =====================
+# ======================
 
 df = load_lstmforecasting_data()
 
 if len(df) < 100:
-
-    st.error(
-        "Minimal 100 data harian."
-    )
-
+    st.error("Minimal 100 data harian.")
     st.stop()
 
-# =====================
-# OUTLIER
-# =====================
+# ======================
+# PREPROCESSING
+# ======================
 
-outliers, lower, upper = (
-    detect_outliers_iqr(df)
-)
-
-df = cap_outliers(
-    df,
-    lower,
-    upper
-)
-
-# =====================
-# DIFFERENCING
-# =====================
+outliers, lower, upper = detect_outliers_iqr(df)
+df = cap_outliers(df, lower, upper)
 
 df_diff = difference_data(df)
 
-# =====================
-# SCALING
-# =====================
+scaled_data, scaler = scale_data(df_diff)
 
-scaled_data, scaler = (
-    scale_data(df_diff)
-)
-
-# =====================
-# TRAIN BUTTON
-# =====================
-
-# if st.button(
-#     "Train Model"
-# ):
-
-#     with st.spinner(
-#         "Training..."
-#     ):
-
-#         model, history, X_test, y_test = (
-#             train_model(
-#                 scaled_data
-#             )
-#         )
-
-#         train, val, test = split_data(scaled_data)
-#         test_start = len(scaled_data) - len(test)
-#         window_size = 30
-
-#         if len(X_test) > 0:
-#             prev_revenue = df["revenue"].iloc[
-#                 test_start + window_size:
-#                 test_start + window_size + len(y_test)
-#             ].values
-
-#             actual_revenue_targets = df["revenue"].iloc[
-#                 test_start + window_size + 1:
-#                 test_start + window_size + 1 + len(y_test)
-#             ].values
-#         else:
-#             prev_revenue = None
-#             actual_revenue_targets = None
-
-#         mse, rmse, mae, mape = (
-#             evaluate_model(
-#                 model,
-#                 X_test,
-#                 y_test,
-#                 scaler,
-#                 prev_revenue=prev_revenue,
-#                 actual_revenue=actual_revenue_targets
-#             )
-#         )
-
-#         st.success(
-#             "Model berhasil disimpan."
-#         )
-
-        col1, col2, col3, col4 = st.columns(4)
-
-        col1.metric(
-            "MSE",
-            round(mse, 2)
-        )
-
-        col2.metric(
-            "RMSE",
-            round(rmse, 2)
-        )
-
-        col3.metric(
-            "MAE",
-            round(mae, 2)
-        )
-
-        col4.metric(
-            "MAPE",
-            f"{mape:.2f}%"
-        )
-
- 
-
-# =====================
+# ======================
 # LOAD MODEL
-# =====================
+# ======================
 
 try:
 
     model = load_saved_model()
 
     train, val, test = split_data(scaled_data)
+
     X_test, y_test = create_sequences(test)
+
     test_start = len(scaled_data) - len(test)
+
     window_size = 30
 
     if len(X_test) > 0:
+
         prev_revenue = df["revenue"].iloc[
             test_start + window_size:
             test_start + window_size + len(y_test)
@@ -212,29 +124,17 @@ try:
 
         col1, col2, col3, col4 = st.columns(4)
 
-        col1.metric(
-            "MSE",
-            round(mse, 2)
-        )
+        col1.metric("MSE", round(mse, 2))
+        col2.metric("RMSE", round(rmse, 2))
+        col3.metric("MAE", round(mae, 2))
+        col4.metric("MAPE", f"{mape:.2f}%")
 
-        col2.metric(
-            "RMSE",
-            round(rmse, 2)
-        )
-
-        col3.metric(
-            "MAE",
-            round(mae, 2)
-        )
-
-        col4.metric(
-            "MAPE",
-            f"{mape:.2f}%"
-        )
     else:
-        st.warning(
-            "Tidak cukup data test untuk evaluasi model."
-        )
+        st.warning("Tidak cukup data test untuk evaluasi model.")
+
+    # ======================
+    # FORECAST
+    # ======================
 
     future = forecast_next_30_days(
         model,
@@ -244,17 +144,13 @@ try:
     )
 
     future_dates = pd.date_range(
-        start=df["tanggal"].max()
-        + pd.Timedelta(days=1),
+        start=df["tanggal"].max() + pd.Timedelta(days=1),
         periods=30
     )
 
     forecast_df = pd.DataFrame({
-        "tanggal":
-        future_dates,
-
-        "forecast":
-        future.flatten()
+        "tanggal": future_dates,
+        "forecast": future.flatten()
     })
 
     fig = go.Figure()
@@ -275,18 +171,15 @@ try:
         )
     )
 
-    st.plotly_chart(
-        fig,
-        use_container_width=True
-    )
+    st.plotly_chart(fig, use_container_width=True)
 
     st.dataframe(
         forecast_df,
         use_container_width=True
     )
 
-except:
+except Exception as e:
 
-    st.info(
-        "Silakan train model terlebih dahulu."
-    )
+    st.error("Model ONNX tidak dapat dimuat.")
+
+    st.exception(e)
