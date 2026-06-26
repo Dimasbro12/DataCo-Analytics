@@ -17,6 +17,7 @@ from analytics.lstm_deploy import (
     load_saved_model,
     forecast_next_30_days
 )
+
 from analytics.lstm_utils import (
     split_data,
     create_sequences
@@ -25,6 +26,7 @@ from analytics.lstm_utils import (
 from analytics.lstm_evaluation import (
     evaluate_model
 )
+
 import base64
 # ======================
 # Sidebar Background
@@ -104,52 +106,52 @@ scaled_data, scaler = (
 # TRAIN BUTTON
 # =====================
 
-if st.button(
-    "Train Model"
-):
+# if st.button(
+#     "Train Model"
+# ):
 
-    with st.spinner(
-        "Training..."
-    ):
+#     with st.spinner(
+#         "Training..."
+#     ):
 
-        model, history, X_test, y_test = (
-            train_model(
-                scaled_data
-            )
-        )
+#         model, history, X_test, y_test = (
+#             train_model(
+#                 scaled_data
+#             )
+#         )
 
-        train, val, test = split_data(scaled_data)
-        test_start = len(scaled_data) - len(test)
-        window_size = 30
+#         train, val, test = split_data(scaled_data)
+#         test_start = len(scaled_data) - len(test)
+#         window_size = 30
 
-        if len(X_test) > 0:
-            prev_revenue = df["revenue"].iloc[
-                test_start + window_size:
-                test_start + window_size + len(y_test)
-            ].values
+#         if len(X_test) > 0:
+#             prev_revenue = df["revenue"].iloc[
+#                 test_start + window_size:
+#                 test_start + window_size + len(y_test)
+#             ].values
 
-            actual_revenue_targets = df["revenue"].iloc[
-                test_start + window_size + 1:
-                test_start + window_size + 1 + len(y_test)
-            ].values
-        else:
-            prev_revenue = None
-            actual_revenue_targets = None
+#             actual_revenue_targets = df["revenue"].iloc[
+#                 test_start + window_size + 1:
+#                 test_start + window_size + 1 + len(y_test)
+#             ].values
+#         else:
+#             prev_revenue = None
+#             actual_revenue_targets = None
 
-        mse, rmse, mae, mape = (
-            evaluate_model(
-                model,
-                X_test,
-                y_test,
-                scaler,
-                prev_revenue=prev_revenue,
-                actual_revenue=actual_revenue_targets
-            )
-        )
+#         mse, rmse, mae, mape = (
+#             evaluate_model(
+#                 model,
+#                 X_test,
+#                 y_test,
+#                 scaler,
+#                 prev_revenue=prev_revenue,
+#                 actual_revenue=actual_revenue_targets
+#             )
+#         )
 
-        st.success(
-            "Model berhasil disimpan."
-        )
+#         st.success(
+#             "Model berhasil disimpan."
+#         )
 
         col1, col2, col3, col4 = st.columns(4)
 
