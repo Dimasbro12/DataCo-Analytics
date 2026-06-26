@@ -7,10 +7,13 @@ Dense = tf.keras.layers.Dense
 Dropout = tf.keras.layers.Dropout
 EarlyStopping = tf.keras.callbacks.EarlyStopping
 ModelCheckpoint = tf.keras.callbacks.ModelCheckpoint
-
+import tf2onnx
 
 MODEL_PATH = (
     "models/revenue_lstm.keras"
+)
+ONNX_MODEL_PATH = (
+    "models/revenue_lstm.onnx"
 )
 
 
@@ -154,6 +157,18 @@ def train_model(data):
             checkpoint
         ],
         verbose=1
+    )
+    spec = (
+        tf.TensorSpec(
+            (None, 30, 1),
+            tf.float32,
+            name="input"
+        ),
+    )
+    tf2onnx.convert.from_keras(
+        model,
+        input_signature=spec,
+        output_path=ONNX_MODEL_PATH
     )
 
     return (
